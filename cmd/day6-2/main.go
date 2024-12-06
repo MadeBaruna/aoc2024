@@ -11,10 +11,6 @@ type Pos struct {
 	x, y int
 }
 
-var grid = make([][]rune, 0)
-var visit = make([][]Pos, 0)
-var cur = Pos{0, 0}
-
 func main() {
 	content, err := lib.ReadFile(false)
 	if err != nil {
@@ -22,7 +18,8 @@ func main() {
 	}
 
 	lines := strings.Split(strings.TrimSpace(content), "\n")
-	grid = make([][]rune, len(lines))
+	grid := make([][]rune, len(lines))
+	start := Pos{0, 0}
 
 	for i, line := range lines {
 		col := []rune(line)
@@ -30,56 +27,73 @@ func main() {
 
 		for j, r := range col {
 			if r == '^' {
-				cur = Pos{i, j}
+				start = Pos{j, i}
 			}
 		}
 	}
 
-	fmt.Println(cur)
-	try()
+	fmt.Println(start)
+	try(start, grid)
 }
 
-func try() {
+func try(start Pos, grid [][]rune) {
+
 	total := 0
 	for i := 0; i < len(grid); i++ {
 		for j := 0; j < len(grid[i]); j++ {
-			if grid[i][j] == '#' {
+			if grid[i][j] == '#' || grid[i][j] == '^' {
 				continue
 			}
 			grid[i][j] = '#'
-			total += walk()
+			total += walk(start, grid)
 			grid[i][j] = '.'
 		}
 	}
+
+	fmt.Println(total)
 }
 
-func walk() int {
+func walk(start Pos, grid [][]rune) int {
+	visit := make([][]Pos, len(grid))
+	for i := 0; i < len(grid); i++ {
+		visit[i] = make([]Pos, len(grid[i]))
+	}
+
 	dir := Pos{0, -1}
-	out := false
+	cur := start
 
-	// grid[cur.y][cur.x] = 'X'
-
-	for !out {
-		cur.x += dir[0]
-		cur.y += dir[1]
-		if cur[0] < 0 || cur[0] >= len(grid[0]) || cur[1] < 0 || cur[1] >= len(grid) {
-			out = true
+	for {
+		cur.x += dir.x
+		cur.y += dir.y
+		if cur.x < 0 || cur.x >= len(grid[0]) || cur.y < 0 || cur.y >= len(grid) {
 			break
 		}
-		if grid[cur[1]][cur[0]] == '#' {
-			cur[0] -= dir[0]
-			cur[1] -= dir[1]
+		if grid[cur.y][cur.x] == '#' {
+			cur.x -= dir.x
+			cur.y -= dir.y
 
-			if visit[cur[1]][cur[0]][0] == dir[0] && visit[cur[1]][cur[0]][1] == dir[1] {
+			if visit[cur.y][cur.x].x == dir.x && visit[cur.y][cur.x].y == dir.y {
 				return 1
 			}
 
-			visit[cur[0]][cur[1]][0] = dir[0]
-			visit[cur[0]][cur[1]][1] = dir[1]
+			visit[cur.y][cur.x].x = dir.x
+			visit[cur.y][cur.x].y = dir.y
 
 			turn(&dir)
-			cur[0] += dir[0]
-			cur[1] += dir[1]
+			cur.x += dir.x
+			cur.y += dir.y
+
+			// corner case need to turn again
+			// .#..
+			// .^#.
+			// ....
+			if grid[cur.y][cur.x] == '#' {
+				cur.x -= dir.x
+				cur.y -= dir.y
+				turn(&dir)
+				cur.x += dir.x
+				cur.y += dir.y
+			}
 		}
 	}
 
@@ -88,12 +102,31 @@ func walk() int {
 
 func turn(dir *Pos) {
 	if dir.x == 0 && dir.y == -1 {
-		dir = &Pos{1, 0}
+		dir.x = 1
+		dir.y = 0
 	} else if dir.x == 1 && dir.y == 0 {
-		dir = &Pos{0, 1}
+		dir.x = 0
+		dir.y = 1
 	} else if dir.x == 0 && dir.y == 1 {
-		dir = &Pos{-1, 0}
+		dir.x = -1
+		dir.y = 0
 	} else {
-		dir = &Pos{0, -1}
+		dir.x = 0
+		dir.y = -1
 	}
 }
+
+// func printGrid(grid [][]rune) {
+// 	for i := 0; i < len(grid); i++ {
+// 		fmt.Println(string(grid[i]))
+// 	}
+// }
+
+// func printVisit(visit [][]Pos) {
+// 	for i := 0; i < len(visit); i++ {
+// 		for j := 0; j < len(visit[i]); j++ {
+// 			fmt.Print(visit[i][j])
+// 		}
+// 		fmt.Println()
+// 	}
+// }
