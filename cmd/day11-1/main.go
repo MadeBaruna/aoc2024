@@ -9,6 +9,8 @@ import (
 	"baruna.me/aoc2024/internal/lib"
 )
 
+var total = 0
+
 func main() {
 	content, err := lib.ReadFile(false)
 	if err != nil {
@@ -26,18 +28,10 @@ func main() {
 	fmt.Println(nums)
 
 	length := len(nums)
-	half := length / 2
-	a := make([]int, len(nums[:half]))
-	copy(a, nums[:half])
-	b := make([]int, len(nums[half:]))
-	copy(b, nums[half:])
-	_a := split(a, 25)
-	fmt.Println(len(_a))
-	_b := split(b, 25)
-	fmt.Println(len(_b))
-
-	fmt.Println(len(_a) + len(_b))
-	// fmt.Println(len(nums))
+	for i := 0; i < length; i++ {
+		split([]int{nums[i]}, 25)
+	}
+	fmt.Println(total)
 }
 
 func split(nums []int, remaining int) []int {
@@ -72,6 +66,7 @@ func split(nums []int, remaining int) []int {
 	if remaining > 1 {
 		return split(nums, remaining-1)
 	}
+	total += len(nums)
 	return nums
 }
 

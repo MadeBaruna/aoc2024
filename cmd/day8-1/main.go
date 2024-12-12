@@ -12,7 +12,7 @@ type Vector struct {
 }
 
 func main() {
-	content, err := lib.ReadFile(true)
+	content, err := lib.ReadFile(false)
 	if err != nil {
 		panic(err)
 	}
